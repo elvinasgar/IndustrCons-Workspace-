@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://industrcons-workspace.example.com/sitemap.xml
