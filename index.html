@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>IndustrCons Workspace</title>
+<meta name="description" content="Frontend-only engineering project management workspace for AEC teams — boards, site diary, checklists and calculators, running entirely in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== TITLE BLOCK HEADER ===================== -->
+<header class="titleblock" id="titleblock">
+  <button class="tb-cell tb-menu" id="menuToggle" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="tb-cell tb-brand">
+    <span class="tb-brand-mark">IC</span>
+    <div class="tb-brand-text">
+      <span class="tb-brand-name">IndustrCons</span>
+      <span class="tb-brand-sub">WORKSPACE</span>
+    </div>
+  </div>
+  <div class="tb-cell tb-field">
+    <label>PROJECT</label>
+    <input type="text" id="projectName" value="Untitled Project" spellcheck="false">
+  </div>
+  <div class="tb-cell tb-field tb-field-sheet">
+    <label>SHEET</label>
+    <span id="activeSheetLabel">01 — BOARD</span>
+  </div>
+  <div class="tb-cell tb-field tb-field-date">
+    <label>DATE</label>
+    <span id="tbDate"></span>
+  </div>
+  <div class="tb-cell tb-actions">
+    <button class="tb-btn" id="saveIndicator" title="Autosaved to this device">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6z"/></svg>
+      <span>Saved</span>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- ===================== SIDEBAR NAV ===================== -->
+  <nav class="sidenav" id="sidenav">
+    <button class="nav-item active" data-view="board">
+      <span class="nav-num">01</span><span class="nav-label">Board</span>
+    </button>
+    <button class="nav-item" data-view="dashboard">
+      <span class="nav-num">02</span><span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-item" data-view="diary">
+      <span class="nav-num">03</span><span class="nav-label">Site Diary</span>
+    </button>
+    <button class="nav-item" data-view="planner">
+      <span class="nav-num">04</span><span class="nav-label">Daily Planner</span>
+    </button>
+    <button class="nav-item" data-view="notes">
+      <span class="nav-num">05</span><span class="nav-label">Sticky Notes</span>
+    </button>
+    <button class="nav-item" data-view="quicknotes">
+      <span class="nav-num">06</span><span class="nav-label">Quick Notes</span>
+    </button>
+    <button class="nav-item" data-view="risk">
+      <span class="nav-num">07</span><span class="nav-label">Risk Register</span>
+    </button>
+    <button class="nav-item" data-view="qaqc">
+      <span class="nav-num">08</span><span class="nav-label">QA/QC Checklist</span>
+    </button>
+    <button class="nav-item" data-view="safety">
+      <span class="nav-num">09</span><span class="nav-label">Safety Checklist</span>
+    </button>
+    <button class="nav-item" data-view="boq">
+      <span class="nav-num">10</span><span class="nav-label">BOQ Calculator</span>
+    </button>
+    <button class="nav-item" data-view="concrete">
+      <span class="nav-num">11</span><span class="nav-label">Concrete Calc</span>
+    </button>
+    <button class="nav-item" data-view="steel">
+      <span class="nav-num">12</span><span class="nav-label">Steel Calc</span>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-item" data-view="github">
+      <span class="nav-num">13</span><span class="nav-label">GitHub Source</span>
+    </button>
+    <button class="nav-item" data-view="data">
+      <span class="nav-num">14</span><span class="nav-label">Import / Export</span>
+    </button>
+  </nav>
+  <div class="nav-scrim" id="navScrim"></div>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main" id="main">
+
+    <!-- ---------- BOARD ---------- -->
+    <section class="view active" id="view-board" data-title="01 — BOARD">
+      <div class="view-head">
+        <h1>Kanban Board</h1>
+        <button class="btn btn-amber" id="addTaskBtn">+ New Task</button>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="view" id="view-dashboard" data-title="02 — DASHBOARD">
+      <div class="view-head"><h1>Progress Dashboard</h1></div>
+      <div class="dash-grid" id="dashGrid"></div>
+      <div class="panel">
+        <h2 class="panel-title">Board Throughput</h2>
+        <div class="bars" id="dashBars"></div>
+      </div>
+    </section>
+
+    <!-- ---------- SITE DIARY ---------- -->
+    <section class="view" id="view-diary" data-title="03 — SITE DIARY">
+      <div class="view-head">
+        <h1>Site Diary</h1>
+        <button class="btn btn-amber" id="addDiaryBtn">+ New Entry</button>
+      </div>
+      <div class="stack" id="diaryList"></div>
+    </section>
+
+    <!-- ---------- PLANNER ---------- -->
+    <section class="view" id="view-planner" data-title="04 — DAILY PLANNER">
+      <div class="view-head">
+        <h1>Daily Planner</h1>
+        <input type="date" id="plannerDate" class="date-input">
+      </div>
+      <div class="planner-grid" id="plannerGrid"></div>
+    </section>
+
+    <!-- ---------- STICKY NOTES ---------- -->
+    <section class="view" id="view-notes" data-title="05 — STICKY NOTES">
+      <div class="view-head">
+        <h1>Sticky Notes</h1>
+        <button class="btn btn-amber" id="addStickyBtn">+ New Note</button>
+      </div>
+      <div class="corkboard" id="corkboard"></div>
+    </section>
+
+    <!-- ---------- QUICK NOTES ---------- -->
+    <section class="view" id="view-quicknotes" data-title="06 — QUICK NOTES">
+      <div class="view-head">
+        <h1>Engineering Quick Notes</h1>
+        <button class="btn btn-amber" id="addQuickNoteBtn">+ New Note</button>
+      </div>
+      <div class="qn-layout">
+        <div class="qn-list" id="qnList"></div>
+        <textarea class="qn-editor" id="qnEditor" placeholder="Select or create a note…" spellcheck="false"></textarea>
+      </div>
+    </section>
+
+    <!-- ---------- RISK REGISTER ---------- -->
+    <section class="view" id="view-risk" data-title="07 — RISK REGISTER">
+      <div class="view-head">
+        <h1>Risk Register</h1>
+        <button class="btn btn-amber" id="addRiskBtn">+ New Risk</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="riskTable">
+          <thead><tr>
+            <th>Risk</th><th>Category</th><th>Likelihood</th><th>Impact</th><th>Score</th><th>Mitigation</th><th>Owner</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody id="riskBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- QA/QC ---------- -->
+    <section class="view" id="view-qaqc" data-title="08 — QA/QC CHECKLIST">
+      <div class="view-head">
+        <h1>QA/QC Checklist</h1>
+        <button class="btn btn-amber" id="addQaqcItemBtn">+ Add Item</button>
+      </div>
+      <div class="checklist-meta" id="qaqcMeta"></div>
+      <div class="checklist" id="qaqcList"></div>
+    </section>
+
+    <!-- ---------- SAFETY ---------- -->
+    <section class="view" id="view-safety" data-title="09 — SAFETY CHECKLIST">
+      <div class="view-head">
+        <h1>Safety Checklist</h1>
+        <button class="btn btn-amber" id="addSafetyItemBtn">+ Add Item</button>
+      </div>
+      <div class="checklist-meta" id="safetyMeta"></div>
+      <div class="checklist" id="safetyList"></div>
+    </section>
+
+    <!-- ---------- BOQ ---------- -->
+    <section class="view" id="view-boq" data-title="10 — BOQ CALCULATOR">
+      <div class="view-head">
+        <h1>Bill of Quantities</h1>
+        <button class="btn btn-amber" id="addBoqRowBtn">+ Add Line Item</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="boqTable">
+          <thead><tr>
+            <th>#</th><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Amount</th><th></th>
+          </tr></thead>
+          <tbody id="boqBody"></tbody>
+          <tfoot><tr><td colspan="5" class="tf-label">TOTAL</td><td id="boqTotal" class="tf-total">0.00</td><td></td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- CONCRETE CALC ---------- -->
+    <section class="view" id="view-concrete" data-title="11 — CONCRETE CALCULATOR">
+      <div class="view-head"><h1>Concrete Volume Calculator</h1></div>
+      <div class="calc-grid">
+        <div class="panel calc-form">
+          <div class="field-row"><label>Length (m)</label><input type="number" id="cLen" step="0.01" value="10"></div>
+          <div class="field-row"><label>Width (m)</label><input type="number" id="cWid" step="0.01" value="5"></div>
+          <div class="field-row"><label>Thickness (mm)</label><input type="number" id="cThk" step="1" value="150"></div>
+          <div class="field-row"><label>Mix Ratio</label>
+            <select id="cMix">
+              <option value="1:1.5:3">M20 — 1 : 1.5 : 3</option>
+              <option value="1:2:4">M15 — 1 : 2 : 4</option>
+              <option value="1:3:6">M10 — 1 : 3 : 6</option>
+              <option value="1:1:2">M25 — 1 : 1 : 2</option>
+            </select>
+          </div>
+          <div class="field-row"><label>Wastage %</label><input type="number" id="cWaste" step="1" value="5"></div>
+        </div>
+        <div class="panel calc-result" id="cResult"></div>
+      </div>
+    </section>
+
+    <!-- ---------- STEEL CALC ---------- -->
+    <section class="view" id="view-steel" data-title="12 — STEEL CALCULATOR">
+      <div class="view-head">
+        <h1>Steel (Rebar) Weight Calculator</h1>
+        <button class="btn btn-amber" id="addSteelRowBtn">+ Add Bar Group</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="steelTable">
+          <thead><tr>
+            <th>Dia (mm)</th><th>Length (m)</th><th>Qty</th><th>Unit kg/m</th><th>Weight (kg)</th><th></th>
+          </tr></thead>
+          <tbody id="steelBody"></tbody>
+          <tfoot><tr><td colspan="4" class="tf-label">TOTAL WEIGHT</td><td id="steelTotal" class="tf-total">0.00 kg</td><td></td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- GITHUB SOURCE ---------- -->
+    <section class="view" id="view-github" data-title="13 — GITHUB SOURCE">
+      <div class="view-head"><h1>GitHub Repository Mode</h1></div>
+      <div class="panel">
+        <p class="hint">Load read-only JSON data (tasks, notes, diary, risks) from a public GitHub repository via the REST API. No authentication, no writes — this only reads files and merges them into your local workspace.</p>
+        <div class="field-row"><label>Owner</label><input type="text" id="ghOwner" placeholder="e.g. elvinasgar"></div>
+        <div class="field-row"><label>Repository</label><input type="text" id="ghRepo" placeholder="e.g. industrcons-data"></div>
+        <div class="field-row"><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
+        <div class="field-row"><label>Folder path</label><input type="text" id="ghPath" value="data" placeholder="data"></div>
+        <button class="btn btn-blue" id="ghLoadBtn">Fetch &amp; Merge</button>
+        <div class="gh-log" id="ghLog"></div>
+      </div>
+    </section>
+
+    <!-- ---------- IMPORT / EXPORT ---------- -->
+    <section class="view" id="view-data" data-title="14 — IMPORT / EXPORT">
+      <div class="view-head"><h1>Import / Export Workspace</h1></div>
+      <div class="panel">
+        <h2 class="panel-title">Export</h2>
+        <p class="hint">Download the entire workspace — board, diary, notes, planner, risks, checklists, calculators — as a single JSON file.</p>
+        <button class="btn btn-amber" id="exportBtn">Export Workspace (.json)</button>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Import</h2>
+        <p class="hint">Replace the current workspace with data from a previously exported JSON file.</p>
+        <input type="file" id="importFile" accept="application/json">
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Danger Zone</h2>
+        <p class="hint">Clear all data stored on this device. This cannot be undone.</p>
+        <button class="btn btn-danger" id="clearAllBtn">Erase Workspace</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-scrim" id="modalScrim">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- ===================== TOAST ===================== -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
