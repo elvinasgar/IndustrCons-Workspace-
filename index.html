@@ -3,11 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>IndustrCons Workspace</title>
-<meta name="description" content="Frontend-only engineering project management workspace for AEC teams — boards, site diary, checklists and calculators, running entirely in your browser.">
+<title>IndustrCons Workspace — Engineering Project Management OS</title>
+<meta name="description" content="IndustrCons Workspace is a frontend-only engineering project management platform for AEC teams — Kanban board, site diary, risk register, QA/QC and safety checklists, BOQ, concrete and steel calculators, all running in your browser.">
+<meta name="author" content="Elvin Əsgərov">
+<link rel="canonical" href="https://industrcons-workspace.example.com/">
+
+<!-- Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="IndustrCons">
+<meta property="og:title" content="IndustrCons Workspace — Engineering Project Management OS">
+<meta property="og:description" content="Kanban board, site diary, risk register, QA/QC and safety checklists, BOQ, concrete and steel calculators — a full engineering workspace that runs entirely in your browser.">
+<meta property="og:image" content="https://industrcons-workspace.example.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://industrcons-workspace.example.com/">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="az_AZ">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="IndustrCons Workspace — Engineering Project Management OS">
+<meta name="twitter:description" content="A frontend-only engineering project management workspace for AEC teams, running entirely in your browser.">
+<meta name="twitter:image" content="https://industrcons-workspace.example.com/assets/og-image.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+
+<!-- Structured data: Organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "IndustrCons",
+  "alternateName": "IndustrCons IRE-3",
+  "url": "https://industrcons-workspace.example.com/",
+  "logo": "https://industrcons-workspace.example.com/assets/logo-full.png",
+  "founder": {
+    "@type": "Person",
+    "name": "Elvin Əsgərov"
+  },
+  "description": "IndustrCons builds a connected suite of free tools for the Architecture, Engineering and Construction industry, including the IRE-3 virtual internship platform, an interactive engineering map, a project workspace, a cost estimator, documentation and an AI assistant.",
+  "sameAs": [
+    "https://industrconsestimator.netlify.app/",
+    "https://industrconsdocs.netlify.app/",
+    "https://industrcons-ai.vercel.app/"
+  ]
+}
+</script>
+
+<!-- Structured data: WebApplication (Workspace) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "IndustrCons Workspace",
+  "applicationCategory": "BusinessApplication",
+  "applicationSubCategory": "Construction Project Management",
+  "operatingSystem": "Any (runs in browser)",
+  "url": "https://industrcons-workspace.example.com/",
+  "description": "Frontend-only engineering project management workspace: Kanban board, site diary, risk register, QA/QC and safety checklists, BOQ, concrete and steel calculators.",
+  "isPartOf": {
+    "@type": "Organization",
+    "name": "IndustrCons",
+    "url": "https://industrcons-workspace.example.com/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
+<!-- Structured data: ImageObject (logo) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ImageObject",
+  "contentUrl": "https://industrcons-workspace.example.com/assets/logo-full.png",
+  "name": "IndustrCons logo",
+  "description": "Official IndustrCons logo — hard hat and building mark with IndustrCONS IRE-3 wordmark.",
+  "creator": {
+    "@type": "Organization",
+    "name": "IndustrCons"
+  }
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "IndustrCons", "item": "https://industrconsestimator.netlify.app/" },
+    { "@type": "ListItem", "position": 2, "name": "Workspace", "item": "https://industrcons-workspace.example.com/" }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -17,7 +116,7 @@
     <span></span><span></span><span></span>
   </button>
   <div class="tb-cell tb-brand">
-    <span class="tb-brand-mark">IC</span>
+    <img class="tb-brand-mark" src="assets/logo-mark.png" alt="IndustrCons logo" width="32" height="32">
     <div class="tb-brand-text">
       <span class="tb-brand-name">IndustrCons</span>
       <span class="tb-brand-sub">WORKSPACE</span>
@@ -83,12 +182,30 @@
       <span class="nav-num">12</span><span class="nav-label">Steel Calc</span>
     </button>
     <div class="nav-divider"></div>
-    <button class="nav-item" data-view="github">
-      <span class="nav-num">13</span><span class="nav-label">GitHub Source</span>
-    </button>
     <button class="nav-item" data-view="data">
-      <span class="nav-num">14</span><span class="nav-label">Import / Export</span>
+      <span class="nav-num">13</span><span class="nav-label">Import Workspace</span>
     </button>
+
+    <div class="side-footer">
+      <div class="eco-title">IndustrCons Ecosystem</div>
+      <a class="eco-link" href="https://industrconsestimator.netlify.app/" target="_blank" rel="noopener">
+        <span class="eco-dot" style="background:var(--blue)"></span>Learn More
+      </a>
+      <a class="eco-link" href="https://industrconsdocs.netlify.app/" target="_blank" rel="noopener">
+        <span class="eco-dot" style="background:var(--amber)"></span>Related Knowledge
+      </a>
+      <a class="eco-link" href="https://industrconsdocs.netlify.app/" target="_blank" rel="noopener">
+        <span class="eco-dot" style="background:var(--steel)"></span>Related Documents
+      </a>
+      <a class="eco-link" href="https://industrcons-ai.vercel.app/" target="_blank" rel="noopener">
+        <span class="eco-dot" style="background:var(--success)"></span>Ask IndustrCons AI
+      </a>
+      <div class="eco-about">
+        <b>About IndustrCons</b>
+        Free, connected tools for the AEC industry — the IRE-3 internship platform, an engineering map, this workspace, a cost estimator, docs and an AI assistant.
+        <span class="eco-founder">Founded by Elvin Əsgərov</span>
+      </div>
+    </div>
   </nav>
   <div class="nav-scrim" id="navScrim"></div>
 
@@ -245,31 +362,12 @@
       </div>
     </section>
 
-    <!-- ---------- GITHUB SOURCE ---------- -->
-    <section class="view" id="view-github" data-title="13 — GITHUB SOURCE">
-      <div class="view-head"><h1>GitHub Repository Mode</h1></div>
-      <div class="panel">
-        <p class="hint">Load read-only JSON data (tasks, notes, diary, risks) from a public GitHub repository via the REST API. No authentication, no writes — this only reads files and merges them into your local workspace.</p>
-        <div class="field-row"><label>Owner</label><input type="text" id="ghOwner" placeholder="e.g. elvinasgar"></div>
-        <div class="field-row"><label>Repository</label><input type="text" id="ghRepo" placeholder="e.g. industrcons-data"></div>
-        <div class="field-row"><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
-        <div class="field-row"><label>Folder path</label><input type="text" id="ghPath" value="data" placeholder="data"></div>
-        <button class="btn btn-blue" id="ghLoadBtn">Fetch &amp; Merge</button>
-        <div class="gh-log" id="ghLog"></div>
-      </div>
-    </section>
-
-    <!-- ---------- IMPORT / EXPORT ---------- -->
-    <section class="view" id="view-data" data-title="14 — IMPORT / EXPORT">
-      <div class="view-head"><h1>Import / Export Workspace</h1></div>
-      <div class="panel">
-        <h2 class="panel-title">Export</h2>
-        <p class="hint">Download the entire workspace — board, diary, notes, planner, risks, checklists, calculators — as a single JSON file.</p>
-        <button class="btn btn-amber" id="exportBtn">Export Workspace (.json)</button>
-      </div>
+    <!-- ---------- IMPORT WORKSPACE ---------- -->
+    <section class="view" id="view-data" data-title="13 — IMPORT WORKSPACE">
+      <div class="view-head"><h1>Import Workspace</h1></div>
       <div class="panel">
         <h2 class="panel-title">Import</h2>
-        <p class="hint">Replace the current workspace with data from a previously exported JSON file.</p>
+        <p class="hint">Load a workspace JSON file (board, diary, notes, planner, risks, checklists, calculators) into this device.</p>
         <input type="file" id="importFile" accept="application/json">
       </div>
       <div class="panel">
