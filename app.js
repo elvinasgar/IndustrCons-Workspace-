@@ -68,8 +68,7 @@ function defaultState(){
     ],
     steel: [
       { id: uid(), dia:12, length:6, qty:40 }
-    ],
-    githubSource: { owner:'', repo:'', branch:'main', path:'data' }
+    ]
   };
 }
 
@@ -119,7 +118,7 @@ const sheetLabels = {
   planner:'04 — DAILY PLANNER', notes:'05 — STICKY NOTES', quicknotes:'06 — QUICK NOTES',
   risk:'07 — RISK REGISTER', qaqc:'08 — QA/QC CHECKLIST', safety:'09 — SAFETY CHECKLIST',
   boq:'10 — BOQ CALCULATOR', concrete:'11 — CONCRETE CALC', steel:'12 — STEEL CALC',
-  github:'13 — GITHUB SOURCE', data:'14 — IMPORT / EXPORT'
+  data:'13 — IMPORT WORKSPACE'
 };
 
 function showView(name){
@@ -662,83 +661,8 @@ document.getElementById('addSteelRowBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------------------------------------------------------------- */
-/* 17. GITHUB REPOSITORY MODE (read-only, REST API, no auth)              */
+/* 17. IMPORT / CLEAR                                                     */
 /* ---------------------------------------------------------------------- */
-const ghFields = ['ghOwner','ghRepo','ghBranch','ghPath'];
-ghFields.forEach((id,i)=>{
-  const key = ['owner','repo','branch','path'][i];
-  document.getElementById(id).value = S.githubSource[key] || document.getElementById(id).value;
-});
-
-function ghLog(msg){
-  const el = document.getElementById('ghLog');
-  el.textContent += (el.textContent?'\n':'') + msg;
-}
-
-document.getElementById('ghLoadBtn').addEventListener('click', async ()=>{
-  const owner = document.getElementById('ghOwner').value.trim();
-  const repo = document.getElementById('ghRepo').value.trim();
-  const branch = document.getElementById('ghBranch').value.trim() || 'main';
-  const path = document.getElementById('ghPath').value.trim().replace(/^\/|\/$/g,'');
-  document.getElementById('ghLog').textContent = '';
-  if(!owner || !repo){ ghLog('Owner and repository are required.'); return; }
-  S.githubSource = { owner, repo, branch, path }; persist();
-
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`;
-  ghLog(`Fetching directory listing: ${apiUrl}`);
-  try{
-    const res = await fetch(apiUrl);
-    if(!res.ok){ ghLog(`GitHub API responded ${res.status}. Check owner/repo/branch/path and that the repo is public.`); return; }
-    const files = await res.json();
-    if(!Array.isArray(files)){ ghLog('Path is not a directory of files.'); return; }
-    const jsonFiles = files.filter(f=>f.type==='file' && f.name.endsWith('.json'));
-    if(!jsonFiles.length){ ghLog('No .json files found at that path.'); return; }
-
-    for(const f of jsonFiles){
-      ghLog(`Loading ${f.name}…`);
-      try{
-        const raw = await fetch(f.download_url);
-        const data = await raw.json();
-        mergeGithubFile(f.name, data);
-        ghLog(`✓ Merged ${f.name}`);
-      }catch(err){
-        ghLog(`✗ Failed to parse ${f.name}: ${err.message}`);
-      }
-    }
-    persist(); renderAll(); toast('GitHub data merged into workspace');
-  }catch(err){
-    ghLog(`Network error: ${err.message}. If this persists, check your network settings / CORS.`);
-  }
-});
-
-function mergeGithubFile(name, data){
-  const key = name.replace(/\.json$/,'').toLowerCase();
-  const map = { tasks:'tasks', notes:'quickNotes', diary:'diary', risks:'risks', qaqc:'qaqc', safety:'safety', boq:'boq', steel:'steel' };
-  const target = map[key];
-  if(target && Array.isArray(data)){
-    // merge by id when possible, otherwise append with fresh ids
-    data.forEach(item=>{
-      const withId = item.id ? item : { ...item, id: uid() };
-      const idx = S[target].findIndex(x=>x.id===withId.id);
-      if(idx>-1) S[target][idx] = withId; else S[target].push(withId);
-    });
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-/* 18. IMPORT / EXPORT / CLEAR                                            */
-/* ---------------------------------------------------------------------- */
-document.getElementById('exportBtn').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${(S.projectName||'workspace').replace(/\s+/g,'_')}_industrcons.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Workspace exported');
-});
-
 document.getElementById('importFile').addEventListener('change', async e=>{
   const file = e.target.files[0];
   if(!file) return;
@@ -777,7 +701,7 @@ document.getElementById('clearAllBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------------------------------------------------------------- */
-/* 19. TITLE BLOCK BINDINGS                                               */
+/* 18. TITLE BLOCK BINDINGS                                               */
 /* ---------------------------------------------------------------------- */
 const projectNameInput = document.getElementById('projectName');
 projectNameInput.value = S.projectName;
@@ -788,7 +712,7 @@ projectNameInput.addEventListener('change', ()=>{
 document.getElementById('tbDate').textContent = new Date().toLocaleDateString(undefined, { year:'numeric', month:'short', day:'2-digit' });
 
 /* ---------------------------------------------------------------------- */
-/* 20. INIT                                                                */
+/* 19. INIT                                                                */
 /* ---------------------------------------------------------------------- */
 renderAll();
 renderConcrete();
