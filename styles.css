@@ -83,8 +83,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .tb-field span{font-family:var(--font-mono); font-size:13px; color:var(--amber-2);}
 .tb-field-sheet{min-width:150px;}
-.tb-field-date{min-width:100px; display:none;}
-@media(min-width:720px){.tb-field-date{display:flex;}}
+.tb-field-clock{min-width:90px; display:none;}
+@media(min-width:720px){.tb-field-clock{display:flex;}}
 
 .tb-menu{
   background:none; border:none; width:52px; display:flex; flex-direction:column;
@@ -100,12 +100,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .tb-brand-name{font-family:var(--font-display); font-weight:600; font-size:15px;}
 .tb-brand-sub{font-family:var(--font-mono); font-size:9px; letter-spacing:.15em; color:var(--amber-2);}
 
-.tb-actions{margin-left:auto; border-right:none; padding-right:16px;}
+.tb-actions{margin-left:auto; border-right:none; padding-right:16px; gap:8px;}
 .tb-btn{
   background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
   color:var(--success); display:flex; align-items:center; gap:6px; padding:6px 10px;
   font-family:var(--font-mono); font-size:11px;
 }
+.tb-lang{color:var(--amber-2); font-family:var(--font-display); font-weight:600; letter-spacing:.05em; padding:6px 12px;}
+.tb-lang:hover{background:var(--panel-2);}
 
 /* ==========================================================================
    SHELL / SIDENAV
@@ -136,6 +138,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .eco-about{margin-top:12px; font-size:11px; line-height:1.6; color:var(--text-mute);}
 .eco-about b{display:block; color:var(--text-dim); font-family:var(--font-display); font-size:11px; letter-spacing:.03em; text-transform:uppercase; margin-bottom:4px;}
 .eco-founder{display:block; margin-top:6px; color:var(--amber-2); font-family:var(--font-mono); font-size:10px;}
+.eco-mail{display:block; margin-top:6px; color:var(--blue); font-family:var(--font-mono); font-size:10px; text-decoration:none;}
+.eco-mail:hover{text-decoration:underline;}
+.eco-rights{display:block; margin-top:10px; color:var(--text-mute); font-size:9.5px; opacity:.8;}
 
 @media(max-width:900px){
   .sidenav{
@@ -226,6 +231,15 @@ textarea{resize:vertical; font-family:var(--font-body);}
 .col[data-col="progress"] .col-head h3{color:var(--blue);}
 .col[data-col="review"] .col-head h3{color:var(--amber-2);}
 .col[data-col="done"] .col-head h3{color:var(--success);}
+.tag-dept{background:rgba(74,154,240,.16); color:var(--blue);}
+
+.dept-tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+.dept-chip{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:20px; color:var(--text-dim);
+  font-size:11.5px; padding:6px 13px;
+}
+.dept-chip:hover{border-color:var(--steel); color:var(--text);}
+.dept-chip.active{background:var(--amber); border-color:var(--amber); color:#1A1000; font-weight:600;}
 
 /* ==========================================================================
    DASHBOARD
@@ -379,3 +393,71 @@ textarea{resize:vertical; font-family:var(--font-body);}
   transition:opacity .2s ease, transform .2s ease; z-index:80; font-family:var(--font-mono);
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ==========================================================================
+   CALCULATOR SUB-TABS
+   ========================================================================== */
+.calc-tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;}
+.calc-tab{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:20px; color:var(--text-dim);
+  font-size:11.5px; padding:7px 14px; font-family:var(--font-display); letter-spacing:.02em;
+}
+.calc-tab:hover{border-color:var(--steel); color:var(--text);}
+.calc-tab.active{background:var(--blue-2); border-color:var(--blue-2); color:#fff;}
+.calc-pane{display:none;}
+.calc-pane.active{display:block; animation:fadein .18s ease;}
+
+/* ==========================================================================
+   CALENDAR
+   ========================================================================== */
+.cal-nav{display:flex; align-items:center; gap:10px;}
+.cal-label{font-family:var(--font-display); font-size:14px; color:var(--amber-2); min-width:150px; text-align:center;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+.cal-weekday{
+  text-align:center; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--text-mute); padding-bottom:6px;
+}
+.cal-cell{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:5px; min-height:80px; padding:6px;
+  cursor:pointer; display:flex; flex-direction:column; gap:4px;
+}
+.cal-cell:hover{border-color:var(--steel);}
+.cal-cell-empty{background:transparent; border:none; cursor:default;}
+.cal-today{border-color:var(--amber); box-shadow:inset 0 0 0 1px var(--amber);}
+.cal-daynum{font-family:var(--font-mono); font-size:11px; color:var(--text-mute);}
+.cal-today .cal-daynum{color:var(--amber-2); font-weight:700;}
+.cal-meetings{display:flex; flex-direction:column; gap:2px; overflow:hidden;}
+.cal-chip{
+  background:var(--panel-2); border-radius:3px; padding:2px 5px; font-size:9.5px; color:var(--text-dim);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cal-more{font-size:9px; color:var(--text-mute); font-family:var(--font-mono);}
+@media(max-width:700px){.cal-cell{min-height:56px;} .cal-weekday{font-size:8.5px;}}
+
+/* ==========================================================================
+   PROJECT PLAN PROGRESS CELL
+   ========================================================================== */
+.plan-progress{display:flex; align-items:center; gap:8px; min-width:140px;}
+.plan-progress .bar-track{flex:1;}
+.plan-progress input{max-width:56px; text-align:right;}
+
+/* ==========================================================================
+   REPORTS
+   ========================================================================== */
+.report-sheet{font-family:var(--font-body);}
+.report-head{display:flex; align-items:center; gap:14px; margin-bottom:18px; padding-bottom:14px; border-bottom:2px solid var(--border-soft);}
+.report-logo{width:52px; height:52px; object-fit:contain;}
+.report-project{font-size:18px; color:var(--text); margin:0 0 4px;}
+.report-date{font-family:var(--font-mono); font-size:11px; color:var(--text-mute);}
+.report-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:20px;}
+.report-section{font-size:13px; color:var(--amber-2); margin:18px 0 8px; text-transform:uppercase; letter-spacing:.04em;}
+.report-list{margin:0; padding-left:18px; font-size:12.5px; color:var(--text-dim); line-height:1.8;}
+
+@media print{
+  .titleblock, .sidenav, .nav-scrim, .toast, .modal-scrim, .view-head button, .dept-tabs, .calc-tabs{display:none !important;}
+  .shell{display:block;}
+  .main{padding:0;}
+  body{background:#fff; color:#111;}
+  .panel{border-color:#ccc;}
+  .report-project, .report-section{color:#111;}
+}
