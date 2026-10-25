@@ -518,7 +518,10 @@
     <section class="view" id="view-reports" data-title="13 — REPORTS">
       <div class="view-head">
         <h1 data-i18n="h.reports">Reports</h1>
-        <button class="btn btn-amber" id="printReportBtn" data-i18n="btn.print">Print / Save as PDF</button>
+        <div class="report-actions">
+          <button class="btn btn-blue" id="excelReportBtn" data-i18n="btn.excel">Download Excel</button>
+          <button class="btn btn-amber" id="printReportBtn" data-i18n="btn.print">Print / Save as PDF</button>
+        </div>
       </div>
       <div class="panel report-sheet" id="reportSheet"></div>
     </section>
@@ -549,6 +552,7 @@
 <!-- ===================== TOAST ===================== -->
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

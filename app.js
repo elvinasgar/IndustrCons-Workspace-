@@ -27,6 +27,29 @@ function uid(){ return Date.now().toString(36) + Math.random().toString(36).slic
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function pad2(n){ return String(n).padStart(2,'0'); }
+function sanitizeHtml(html){
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  div.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(el=>el.remove());
+  div.querySelectorAll('*').forEach(el=>{
+    [...el.attributes].forEach(attr=>{
+      const n = attr.name.toLowerCase();
+      if(n.startsWith('on') || (n==='href' && /^\s*javascript:/i.test(attr.value)) || (n==='src' && /^\s*javascript:/i.test(attr.value))){
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return div.innerHTML;
+}
+function stripHtml(html){
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  return div.textContent || '';
+}
+function fmtTs(iso){
+  const d = new Date(iso);
+  return `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
 
 /* ---------------------------------------------------------------------- */
 /* 2. i18n — AZ / EN                                                       */
@@ -45,6 +68,7 @@ const I18N = {
     'h.reports':'Hesabatlar','h.data':'İş Sahəsini İdxal Et','h.import':'İdxal','h.danger':'Təhlükəli Zona',
     'btn.addTask':'+ Yeni Tapşırıq','btn.addEntry':'+ Yeni Qeyd','btn.addNote':'+ Yeni Qeyd','btn.addMilestone':'+ Mərhələ Əlavə Et',
     'btn.addRisk':'+ Yeni Risk','btn.addItem':'+ Əlavə Et','btn.addRow':'+ Sətir Əlavə Et','btn.print':'Çap Et / PDF Kimi Saxla',
+    'btn.excel':'Excel Kimi Yüklə',
     'btn.erase':'İş Sahəsini Sil','btn.today':'Bu gün',
     'hint.import':'Cihaza iş sahəsi JSON faylı yüklə (lövhə, gündəlik, qeydlər, planlaşdırma, risklər, siyahılar, kalkulyatorlar).',
     'hint.danger':'Bu cihazda saxlanan bütün məlumatları sil. Bu geri qaytarıla bilməz.',
@@ -67,7 +91,8 @@ const I18N = {
     'eco.aboutTitle':'IndustrCons Haqqında',
     'eco.aboutBody':'IndustrCons tikinti-mühəndislik sənayesi üçün pulsuz, bir-birinə bağlı alətlər yaradır — IRE-3 təcrübə platforması, mühəndislik xəritəsi, bu iş sahəsi, smeta kalkulyatoru, sənədlər və süni intellekt köməkçisi.',
     'eco.founder':'Qurucu: Elvin Əsgərov','eco.rights':'© 2026 IndustrCons. Bütün hüquqlar qorunur.',
-    'dept.all':'Hamısı','modal.cancel':'Ləğv Et','modal.save':'Yadda Saxla','modal.delete':'Sil','modal.close':'Bağla','modal.add':'Əlavə Et'
+    'dept.all':'Hamısı','modal.cancel':'Ləğv Et','modal.save':'Yadda Saxla','modal.delete':'Sil','modal.close':'Bağla','modal.add':'Əlavə Et',
+    'modal.editTask':'Tapşırığa Düzəliş','modal.newTask':'Yeni Tapşırıq'
   },
   en:{
     'tb.project':'PROJECT','tb.sheet':'SHEET','tb.time':'TIME','tb.saved':'Saved',
@@ -82,6 +107,7 @@ const I18N = {
     'h.reports':'Reports','h.data':'Import Workspace','h.import':'Import','h.danger':'Danger Zone',
     'btn.addTask':'+ New Task','btn.addEntry':'+ New Entry','btn.addNote':'+ New Note','btn.addMilestone':'+ Add Milestone',
     'btn.addRisk':'+ New Risk','btn.addItem':'+ Add Item','btn.addRow':'+ Add Row','btn.print':'Print / Save as PDF',
+    'btn.excel':'Download Excel',
     'btn.erase':'Erase Workspace','btn.today':'Today',
     'hint.import':'Load a workspace JSON file (board, diary, notes, planner, risks, checklists, calculators) into this device.',
     'hint.danger':'Clear all data stored on this device. This cannot be undone.',
@@ -104,7 +130,8 @@ const I18N = {
     'eco.aboutTitle':'About IndustrCons',
     'eco.aboutBody':'IndustrCons builds free, connected tools for the AEC industry — the IRE-3 internship platform, an engineering map, this workspace, a cost estimator, docs and an AI assistant.',
     'eco.founder':'Founded by Elvin Əsgərov','eco.rights':'© 2026 IndustrCons. All rights reserved.',
-    'dept.all':'All','modal.cancel':'Cancel','modal.save':'Save','modal.delete':'Delete','modal.close':'Close','modal.add':'Add'
+    'dept.all':'All','modal.cancel':'Cancel','modal.save':'Save','modal.delete':'Delete','modal.close':'Close','modal.add':'Add',
+    'modal.editTask':'Edit Task','modal.newTask':'New Task'
   }
 };
 function t(key){ return (I18N[S.lang] && I18N[S.lang][key]) || (I18N.az[key]) || key; }
@@ -174,6 +201,8 @@ const STEEL_PROFILES = [
   {key:'L50x50x5', kgm:3.77},{key:'L65x65x6', kgm:5.91},{key:'L75x75x8', kgm:8.95},
   {key:'CUSTOM', kgm:0}
 ];
+const LABEL_COLORS = ['none','red','amber','green','blue','purple'];
+const RT_COLORS = ['#EAF2FF','#F7931E','#4A9AF0','#3FB27F','#E5595E','#B98CE0'];
 const STANDARD_CABLE_SIZES = [1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300];
 const STANDARD_TRAY_WIDTHS = [50,75,100,150,200,300,400,500,600];
 
@@ -373,13 +402,20 @@ function taskCardEl(t){
   el.className = 'task-card';
   el.draggable = true;
   el.dataset.priority = t.priority;
+  const checklist = t.checklist || [];
+  const doneCount = checklist.filter(c=>c.done).length;
+  const preview = t.description ? stripHtml(t.description).trim() : '';
   el.innerHTML = `
+    ${t.labelColor && t.labelColor!=='none' ? `<span class="label-stripe label-${t.labelColor}"></span>` : ''}
     <div class="task-title">${esc(t.title)}</div>
+    ${preview ? `<div class="task-preview">${esc(preview.slice(0,80))}${preview.length>80?'…':''}</div>` : ''}
     <div class="task-meta">
       <span class="tag tag-dept">${esc(deptLabel(t.department||'general'))}</span>
       ${t.tag ? `<span class="tag">${esc(t.tag)}</span>` : ''}
       <span class="tag">${esc(t.priority)}</span>
       ${t.due ? `<span class="tag">${esc(t.due)}</span>` : ''}
+      ${t.assignee ? `<span class="tag tag-assignee">👤 ${esc(t.assignee)}</span>` : ''}
+      ${checklist.length ? `<span class="tag">☑ ${doneCount}/${checklist.length}</span>` : ''}
     </div>`;
   el.addEventListener('dragstart', e=>{
     e.dataTransfer.setData('text/plain', t.id);
@@ -390,50 +426,172 @@ function taskCardEl(t){
   return el;
 }
 
+function renderMiniChecklist(items){
+  if(!items.length) return `<p class="hint" style="margin:0">—</p>`;
+  return items.map(c=>`
+    <div class="mini-check-item" data-cid="${c.id}">
+      <input type="checkbox" ${c.done?'checked':''} data-cid-check="${c.id}">
+      <span class="${c.done?'mini-done':''}">${esc(c.text)}</span>
+      <button type="button" class="btn-icon" data-cid-del="${c.id}">✕</button>
+    </div>`).join('');
+}
+function renderActivity(items){
+  if(!items.length) return `<p class="hint" style="margin:0">—</p>`;
+  return [...items].reverse().map(a=>`
+    <div class="activity-item">
+      <span class="activity-ts">${esc(fmtTs(a.ts))}</span>
+      <span>${esc(a.text)}</span>
+    </div>`).join('');
+}
+
 function editTask(id){
-  const t = S.tasks.find(x=>x.id===id);
+  const task = S.tasks.find(x=>x.id===id);
+  let workingChecklist = task ? JSON.parse(JSON.stringify(task.checklist||[])) : [];
+  let workingActivity = task ? JSON.parse(JSON.stringify(task.activity||[])) : [];
+
   openModal(`
-    <h2>${t?'✎':'+'} ${esc(colLabel('todo')==='To Do'?'Task':'Tapşırıq')}</h2>
-    <div class="field-row"><label>${t?'':''}${t?'':''}${esc('')}</label></div>
-    <div class="field-row"><label>${esc(t?'':'')}</label></div>
-    <div class="field-row"><label>Title</label><input id="mTitle" type="text" value="${t?esc(t.title):''}"></div>
-    <div class="field-row"><label>Department</label>
-      <select id="mDept">${DEPARTMENTS.map(d=>`<option value="${d.key}" ${t&&t.department===d.key?'selected':(!t&&d.key==='general'?'selected':'')}>${esc(deptLabel(d.key))}</option>`).join('')}</select>
+    <h2>${task ? '✎ ' + esc(t('modal.editTask')) : '+ ' + esc(t('modal.newTask'))}</h2>
+    <div class="field-row"><label>Title</label><input id="mTitle" type="text" value="${task?esc(task.title):''}"></div>
+    <div class="field-grid-2">
+      <div class="field-row"><label>Department</label>
+        <select id="mDept">${DEPARTMENTS.map(d=>`<option value="${d.key}" ${task&&task.department===d.key?'selected':(!task&&d.key==='general'?'selected':'')}>${esc(deptLabel(d.key))}</option>`).join('')}</select>
+      </div>
+      <div class="field-row"><label>Assignee</label><input id="mAssignee" type="text" value="${task?esc(task.assignee||''):''}" placeholder="—"></div>
     </div>
-    <div class="field-row"><label>Tag</label><input id="mTag" type="text" value="${t?esc(t.tag||''):''}"></div>
-    <div class="field-row"><label>Priority</label>
-      <select id="mPriority">
-        <option value="low" ${t&&t.priority==='low'?'selected':''}>Low</option>
-        <option value="medium" ${!t||t.priority==='medium'?'selected':''}>Medium</option>
-        <option value="high" ${t&&t.priority==='high'?'selected':''}>High</option>
-      </select>
+    <div class="field-grid-2">
+      <div class="field-row"><label>Tag</label><input id="mTag" type="text" value="${task?esc(task.tag||''):''}"></div>
+      <div class="field-row"><label>Priority</label>
+        <select id="mPriority">
+          <option value="low" ${task&&task.priority==='low'?'selected':''}>Low</option>
+          <option value="medium" ${!task||task.priority==='medium'?'selected':''}>Medium</option>
+          <option value="high" ${task&&task.priority==='high'?'selected':''}>High</option>
+        </select>
+      </div>
     </div>
-    <div class="field-row"><label>Due date</label><input id="mDue" type="date" value="${t?esc(t.due||''):''}"></div>
-    <div class="field-row"><label>Column</label>
-      <select id="mCol">
-        ${COLS.map(c=>`<option value="${c.key}" ${t&&t.col===c.key?'selected':(!t&&c.key==='todo'?'selected':'')}>${esc(colLabel(c.key))}</option>`).join('')}
-      </select>
+    <div class="field-grid-2">
+      <div class="field-row"><label>Due date</label><input id="mDue" type="date" value="${task?esc(task.due||''):''}"></div>
+      <div class="field-row"><label>Column</label>
+        <select id="mCol">
+          ${COLS.map(c=>`<option value="${c.key}" ${task&&task.col===c.key?'selected':(!task&&c.key==='todo'?'selected':'')}>${esc(colLabel(c.key))}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="field-row"><label>Label</label>
+      <div class="swatch-row" id="mSwatches">
+        ${LABEL_COLORS.map(c=>`<button type="button" class="swatch swatch-${c} ${task&&task.labelColor===c?'active':(!task&&c==='none'?'active':'')}" data-color="${c}"></button>`).join('')}
+      </div>
+    </div>
+    <div class="field-row">
+      <label>Description</label>
+      <div class="rt-toolbar" id="mRtToolbar">
+        <button type="button" data-cmd="bold"><b>B</b></button>
+        <button type="button" data-cmd="italic"><i>I</i></button>
+        <button type="button" data-cmd="underline"><u>U</u></button>
+        <button type="button" data-cmd="justifyLeft" title="Left">⟸</button>
+        <button type="button" data-cmd="justifyCenter" title="Center">≡</button>
+        <button type="button" data-cmd="justifyRight" title="Right">⟹</button>
+        <span class="rt-colors">${RT_COLORS.map(c=>`<button type="button" class="rt-color" data-color="${c}" style="background:${c}"></button>`).join('')}</span>
+        <button type="button" data-cmd="removeFormat" title="Clear formatting">⨯</button>
+      </div>
+      <div class="rt-editor" id="mDescription" contenteditable="true">${task ? (task.description||'') : ''}</div>
+    </div>
+    <div class="field-row">
+      <label>Checklist</label>
+      <div id="mChecklist" class="mini-checklist">${renderMiniChecklist(workingChecklist)}</div>
+      <div class="mini-add-row"><input id="mChecklistInput" type="text" placeholder="…"><button type="button" class="btn btn-ghost btn-sm" id="mChecklistAdd">+</button></div>
+    </div>
+    <div class="field-row">
+      <label>Activity / Updates</label>
+      <div id="mActivity" class="activity-log">${renderActivity(workingActivity)}</div>
+      <div class="mini-add-row"><input id="mActivityInput" type="text" placeholder="…"><button type="button" class="btn btn-ghost btn-sm" id="mActivityAdd">+</button></div>
     </div>
     <div class="modal-actions">
-      ${t?`<button class="btn btn-danger" id="mDelete">${t('modal.delete')}</button>`:''}
+      ${task?`<button class="btn btn-danger" id="mDelete">${t('modal.delete')}</button>`:''}
       <button class="btn btn-ghost" id="mCancel">${t('modal.cancel')}</button>
       <button class="btn btn-amber" id="mSave">${t('modal.save')}</button>
     </div>`);
+
   document.getElementById('mCancel').onclick = closeModal;
-  if(t) document.getElementById('mDelete').onclick = ()=>{
+
+  // label swatches
+  document.querySelectorAll('#mSwatches .swatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#mSwatches .swatch').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // rich text toolbar
+  const editorEl = document.getElementById('mDescription');
+  document.querySelectorAll('#mRtToolbar [data-cmd]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      editorEl.focus();
+      document.execCommand(btn.dataset.cmd, false, null);
+    });
+  });
+  document.querySelectorAll('#mRtToolbar .rt-color').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      editorEl.focus();
+      document.execCommand('foreColor', false, btn.dataset.color);
+    });
+  });
+
+  // checklist
+  function refreshChecklist(){
+    document.getElementById('mChecklist').innerHTML = renderMiniChecklist(workingChecklist);
+    document.querySelectorAll('[data-cid-check]').forEach(cb=>{
+      cb.addEventListener('change', ()=>{
+        const item = workingChecklist.find(c=>c.id===cb.dataset.cidCheck);
+        if(item){ item.done = cb.checked; refreshChecklist(); }
+      });
+    });
+    document.querySelectorAll('[data-cid-del]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        workingChecklist = workingChecklist.filter(c=>c.id!==b.dataset.cidDel);
+        refreshChecklist();
+      });
+    });
+  }
+  refreshChecklist();
+  document.getElementById('mChecklistAdd').addEventListener('click', ()=>{
+    const inp = document.getElementById('mChecklistInput');
+    const val = inp.value.trim();
+    if(!val) return;
+    workingChecklist.push({ id: uid(), text: val, done:false });
+    inp.value = '';
+    refreshChecklist();
+  });
+
+  // activity log
+  document.getElementById('mActivityAdd').addEventListener('click', ()=>{
+    const inp = document.getElementById('mActivityInput');
+    const val = inp.value.trim();
+    if(!val) return;
+    workingActivity.push({ id: uid(), ts: new Date().toISOString(), text: val });
+    inp.value = '';
+    document.getElementById('mActivity').innerHTML = renderActivity(workingActivity);
+  });
+
+  if(task) document.getElementById('mDelete').onclick = ()=>{
     S.tasks = S.tasks.filter(x=>x.id!==id); persist(); closeModal(); renderBoard(); renderDashboard();
   };
   document.getElementById('mSave').onclick = ()=>{
     const title = document.getElementById('mTitle').value.trim();
     if(!title){ toast('Title required'); return; }
+    const activeSwatch = document.querySelector('#mSwatches .swatch.active');
     const data = {
       title, tag: document.getElementById('mTag').value.trim(),
       priority: document.getElementById('mPriority').value,
       due: document.getElementById('mDue').value,
       col: document.getElementById('mCol').value,
-      department: document.getElementById('mDept').value
+      department: document.getElementById('mDept').value,
+      assignee: document.getElementById('mAssignee').value.trim(),
+      labelColor: activeSwatch ? activeSwatch.dataset.color : 'none',
+      description: sanitizeHtml(editorEl.innerHTML),
+      checklist: workingChecklist,
+      activity: workingActivity
     };
-    if(t) Object.assign(t, data);
+    if(task) Object.assign(task, data);
     else S.tasks.push({ id: uid(), ...data });
     persist(); closeModal(); renderBoard(); renderDashboard();
   };
@@ -1188,6 +1346,22 @@ document.getElementById('addBoqRowBtn').addEventListener('click', ()=>{
 /* ---------------------------------------------------------------------- */
 /* 19. REPORTS                                                            */
 /* ---------------------------------------------------------------------- */
+function donutChart(segments, centerLabel){
+  const total = segments.reduce((s,x)=>s+x.value,0);
+  let acc = 0;
+  const stops = total ? segments.map(seg=>{
+    const start = acc/total*360; acc += seg.value; const end = acc/total*360;
+    return `${seg.color} ${start}deg ${end}deg`;
+  }).join(', ') : '#274B7A 0deg 360deg';
+  const legend = segments.map(seg=>`<div class="donut-legend-item"><span class="donut-dot" style="background:${seg.color}"></span>${esc(seg.label)}: <b>${seg.value}</b></div>`).join('');
+  return `<div class="donut-block">
+    <div class="donut-wrap">
+      <div class="donut" style="background:conic-gradient(${stops})"><div class="donut-hole"><span>${esc(centerLabel||'')}</span></div></div>
+    </div>
+    <div class="donut-legend">${legend}</div>
+  </div>`;
+}
+
 function renderReport(){
   const total = S.tasks.length;
   const done = S.tasks.filter(t=>t.col==='done').length;
@@ -1197,6 +1371,11 @@ function renderReport(){
   const highRisks = S.risks.filter(r=>r.likelihood*r.impact>=12);
   const lastDiary = [...S.diary].sort((a,b)=>b.date.localeCompare(a.date))[0];
   const now = new Date();
+
+  const colColors = { todo:'#93A6BE', progress:'#4A9AF0', review:'#FFB454', done:'#3FB27F' };
+  const taskDonut = donutChart(COLS.map(c=>({ label: colLabel(c.key), value: S.tasks.filter(x=>x.col===c.key).length, color: colColors[c.key] })), String(total));
+  const riskColors = { open:'#E5595E', mitigating:'#FFB454', closed:'#3FB27F' };
+  const riskDonut = donutChart(Object.keys(RISK_STATUS).map(k=>({ label: RISK_STATUS[k][S.lang], value: riskCounts[k]||0, color: riskColors[k] })), String(S.risks.length));
 
   document.getElementById('reportSheet').innerHTML = `
     <div class="report-head">
@@ -1209,6 +1388,7 @@ function renderReport(){
     <div class="report-grid">
       ${tile(total,'Total Tasks')}${tile(done,'Completed')}${tile(qaqcPct+'%','QA/QC')}${tile(safetyPct+'%','HSE')}
     </div>
+    <div class="report-charts">${taskDonut}${riskDonut}</div>
     <h3 class="report-section">${t('h.risk')}</h3>
     <p>${esc(RISK_STATUS.open[S.lang])}: <b>${riskCounts.open||0}</b> · ${esc(RISK_STATUS.mitigating[S.lang])}: <b>${riskCounts.mitigating||0}</b> · ${esc(RISK_STATUS.closed[S.lang])}: <b>${riskCounts.closed||0}</b></p>
     ${highRisks.length ? `<ul class="report-list">${highRisks.map(r=>`<li>${esc(r.risk)} — ${esc(r.owner||'—')}</li>`).join('')}</ul>` : ''}
@@ -1219,6 +1399,47 @@ function renderReport(){
   `;
 }
 document.getElementById('printReportBtn').addEventListener('click', ()=> window.print());
+
+function downloadCSV(filename, rows){
+  const csv = rows.map(r=>r.map(cell=>{
+    const v = cell==null?'':String(cell);
+    return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+  }).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('excelReportBtn').addEventListener('click', ()=>{
+  const name = (S.projectName||'workspace').replace(/\s+/g,'_');
+  if(typeof XLSX === 'undefined'){
+    downloadCSV(name+'_tasks.csv', [
+      ['Title','Department','Column','Priority','Assignee','Due'],
+      ...S.tasks.map(x=>[x.title, deptLabel(x.department||'general'), colLabel(x.col), x.priority, x.assignee||'', x.due||''])
+    ]);
+    toast(S.lang==='az' ? 'Excel kitabxanası yüklənmədi — CSV endirildi' : 'Excel library unavailable — downloaded CSV instead');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.tasks.map(x=>({
+    Title:x.title, Department:deptLabel(x.department||'general'), Column:colLabel(x.col), Priority:x.priority,
+    Assignee:x.assignee||'', Due:x.due||'', Tag:x.tag||''
+  }))), 'Tasks');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.risks.map(x=>({
+    Risk:x.risk, Category:x.category, Likelihood:x.likelihood, Impact:x.impact, Score:x.likelihood*x.impact,
+    Mitigation:x.mitigation, Owner:x.owner, Status:RISK_STATUS[x.status]?RISK_STATUS[x.status][S.lang]:x.status
+  }))), 'Risks');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.milestones.map(x=>({
+    Milestone:x.name, Start:x.start, End:x.end, Progress:x.progress, Status:PLAN_STATUS[x.status]?PLAN_STATUS[x.status][S.lang]:x.status
+  }))), 'Project Plan');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.qaqc.map(x=>({ Item:x.label, Category:x.category, Done:x.checked?'Yes':'No' }))), 'QAQC');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.safety.map(x=>({ Item:x.label, Category:x.category, Done:x.checked?'Yes':'No' }))), 'HSE');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.boq.map(x=>({ Description:x.desc, Unit:x.unit, Qty:x.qty, Rate:x.rate, Amount:(x.qty*x.rate) }))), 'BOQ');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(S.meetings.map(x=>({ Date:x.date, Time:x.time, Title:x.title, Department:deptLabel(x.department||'general'), Notes:x.notes||'' }))), 'Meetings');
+  XLSX.writeFile(wb, name+'_report.xlsx');
+});
 
 /* ---------------------------------------------------------------------- */
 /* 20. IMPORT / CLEAR                                                     */

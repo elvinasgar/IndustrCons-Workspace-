@@ -460,4 +460,66 @@ textarea{resize:vertical; font-family:var(--font-body);}
   body{background:#fff; color:#111;}
   .panel{border-color:#ccc;}
   .report-project, .report-section{color:#111;}
+  .donut, .donut-dot{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
 }
+
+/* ==========================================================================
+   TASK CARD EXTRAS — label stripe, assignee, description preview
+   ========================================================================== */
+.task-card{position:relative; overflow:hidden;}
+.label-stripe{position:absolute; left:0; top:0; bottom:0; width:5px;}
+.label-red{background:var(--danger);} .label-amber{background:var(--amber);} .label-green{background:var(--success);}
+.label-blue{background:var(--blue);} .label-purple{background:#B98CE0;}
+.task-preview{font-size:11.5px; color:var(--text-mute); margin-bottom:6px; line-height:1.4;}
+.tag-assignee{background:var(--panel-2);}
+
+/* ==========================================================================
+   TASK MODAL EXTRAS
+   ========================================================================== */
+.field-grid-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.swatch-row{display:flex; gap:8px;}
+.swatch{width:26px; height:26px; border-radius:50%; border:2px solid transparent; cursor:pointer;}
+.swatch.active{border-color:var(--text);}
+.swatch-none{background:var(--panel-2); position:relative;}
+.swatch-none::after{content:'✕'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-mute);}
+.swatch-red{background:var(--danger);} .swatch-amber{background:var(--amber);} .swatch-green{background:var(--success);}
+.swatch-blue{background:var(--blue);} .swatch-purple{background:#B98CE0;}
+
+.rt-toolbar{display:flex; flex-wrap:wrap; align-items:center; gap:4px; background:var(--ink-2); border:1px solid var(--border-soft); border-radius:5px 5px 0 0; padding:6px 8px;}
+.rt-toolbar button{background:var(--panel); border:1px solid var(--border-soft); border-radius:3px; color:var(--text-dim); width:26px; height:26px; font-size:12px;}
+.rt-toolbar button:hover{color:var(--text); border-color:var(--steel);}
+.rt-colors{display:flex; gap:4px; margin:0 4px;}
+.rt-color{width:18px !important; height:18px !important; border-radius:50% !important; border:1px solid rgba(255,255,255,.3) !important;}
+.rt-editor{
+  min-height:90px; background:var(--panel); border:1px solid var(--border-soft); border-top:none; border-radius:0 0 5px 5px;
+  padding:10px; font-size:13px; line-height:1.6; color:var(--text);
+}
+.rt-editor:focus{outline:none; box-shadow:inset 0 0 0 1px var(--blue-2);}
+
+.mini-checklist{display:flex; flex-direction:column; gap:5px; margin-bottom:6px;}
+.mini-check-item{display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--border-soft); border-radius:4px; padding:6px 8px; font-size:12.5px;}
+.mini-check-item input{width:16px; height:16px; accent-color:var(--amber);}
+.mini-check-item span{flex:1;}
+.mini-done{text-decoration:line-through; color:var(--text-mute);}
+.mini-add-row{display:flex; gap:8px;}
+.mini-add-row input{flex:1;}
+
+.activity-log{display:flex; flex-direction:column-reverse; gap:6px; max-height:160px; overflow-y:auto; margin-bottom:6px;}
+.activity-item{background:var(--panel); border-left:2px solid var(--blue-2); border-radius:0 4px 4px 0; padding:6px 10px; font-size:12px;}
+.activity-ts{display:block; font-family:var(--font-mono); font-size:9.5px; color:var(--text-mute); margin-bottom:2px;}
+
+/* ==========================================================================
+   REPORT DONUT CHARTS
+   ========================================================================== */
+.report-actions{display:flex; gap:10px; flex-wrap:wrap;}
+.report-charts{display:flex; flex-wrap:wrap; gap:28px; margin:18px 0 6px;}
+.donut-block{display:flex; align-items:center; gap:14px;}
+.donut-wrap{flex:0 0 auto;}
+.donut{width:110px; height:110px; border-radius:50%; position:relative;}
+.donut-hole{
+  position:absolute; inset:16px; background:var(--panel); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:18px; color:var(--text);
+}
+.donut-legend{display:flex; flex-direction:column; gap:4px; font-size:11.5px; color:var(--text-dim);}
+.donut-legend-item{display:flex; align-items:center; gap:6px;}
+.donut-dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
